@@ -8,6 +8,7 @@
         <el-descriptions-item label="用户名">{{ userInfo.username }}</el-descriptions-item>
         <el-descriptions-item label="邮箱">{{ userInfo.email }}</el-descriptions-item>
       </el-descriptions>
+      <el-button type="primary" @click="sendResetPasswordEmail" class="reset-password-btn">重置密码</el-button>
       <el-button type="danger" @click="logout" class="logout-btn">退出登录</el-button>
     </el-card>
   </div>
@@ -35,6 +36,15 @@ onMounted(async () => {
     navigateTo('/login')
   }
 })
+
+const sendResetPasswordEmail = async () => {
+  try {
+    await AV.User.requestPasswordReset(userInfo.value.email)
+    ElMessage.success('重置密码邮件已发送，请查看您的邮箱')
+  } catch (error: any) {
+    ElMessage.error(`发送重置密码邮件失败: ${error.message}`)
+  }
+}
 
 const logout = async () => {
   try {
@@ -67,8 +77,12 @@ const logout = async () => {
   color: var(--color-primary);
 }
 
-.logout-btn {
+.reset-password-btn, .logout-btn {
   margin-top: 20px;
   width: 100%;
+}
+
+.reset-password-btn {
+  margin-bottom: 10px;
 }
 </style>

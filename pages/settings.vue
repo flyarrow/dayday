@@ -6,8 +6,13 @@
       </template>
       <el-descriptions :column="1" border>
         <el-descriptions-item label="用户名">{{ userInfo.username }}</el-descriptions-item>
-        <el-descriptions-item label="邮箱">{{ userInfo.email }}</el-descriptions-item>
+        <el-descriptions-item label="邮箱">
+          {{ userInfo.email }}
+          <el-tag v-if="userInfo.emailVerified" type="success" size="small">已验证</el-tag>
+          <el-tag v-else type="warning" size="small">未验证</el-tag>
+        </el-descriptions-item>
       </el-descriptions>
+      <el-button v-if="!userInfo.emailVerified" type="primary" @click="sendVerificationEmail" class="verify-email-btn">验证邮箱</el-button>
       <el-button type="primary" @click="sendResetPasswordEmail" class="reset-password-btn">重置密码</el-button>
       <el-button type="danger" @click="logout" class="logout-btn">退出登录</el-button>
     </el-card>
@@ -21,7 +26,8 @@ import { ElMessage } from 'element-plus'
 
 const userInfo = ref({
   username: '',
-  email: ''
+  email: '',
+  emailVerified: false
 })
 
 onMounted(async () => {
@@ -29,13 +35,23 @@ onMounted(async () => {
   if (currentUser) {
     userInfo.value = {
       username: currentUser.get('username'),
-      email: currentUser.get('email')
+      email: currentUser.get('email'),
+      emailVerified: currentUser.get('emailVerified')
     }
   } else {
     // 如果用户未登录，重定向到登录页面
     navigateTo('/login')
   }
 })
+
+const sendVerificationEmail = async () => {
+  try {
+    await AV.User.requestEmailVerify(userInfo.value.email)
+    ElMessage.success('验证邮件已发送，请查看您的邮箱')
+  } catch (error: any) {
+    ElMessage.error(`发送验证邮件失败: ${error.message}`)
+  }
+}
 
 const sendResetPasswordEmail = async () => {
   try {
@@ -77,9 +93,15 @@ const logout = async () => {
   color: var(--color-primary);
 }
 
-.reset-password-btn, .logout-btn {
+.verify-email-btn,
+.reset-password-btn,
+.logout-btn {
   margin-top: 20px;
   width: 100%;
+}
+
+.verify-email-btn {
+  margin-bottom: 10px;
 }
 
 .reset-password-btn {

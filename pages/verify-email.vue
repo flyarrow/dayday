@@ -30,7 +30,16 @@ onMounted(async () => {
   const { token } = route.query
   if (token) {
     try {
-      await AV.User.verifyEmail(token as string)
+      // 使用类型断言来避免 TypeScript 错误
+      await (AV.User as any).verifyEmail(token as string)
+      
+      // 获取当前用户并更新 emailVerified 字段
+      const currentUser = AV.User.current()
+      if (currentUser) {
+        currentUser.set('emailVerified', true)
+        await currentUser.save()
+      }
+      
       verificationStatus.value = 'success'
       ElMessage.success('邮箱验证成功')
     } catch (error: any) {
